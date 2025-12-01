@@ -6,6 +6,7 @@ import com.yourcompany.hrms.dto.LeaveApproveRejectRequest;
 import com.yourcompany.hrms.dto.LeaveBalanceResponse;
 import com.yourcompany.hrms.dto.LeaveRequestResponse;
 import com.yourcompany.hrms.dto.UserResponse;
+import com.yourcompany.hrms.entity.LeaveBalance;
 import com.yourcompany.hrms.service.LeaveService;
 import com.yourcompany.hrms.service.UserService;
 import jakarta.validation.Valid;
@@ -73,4 +74,10 @@ public class LeaveController {
             throw new IllegalArgumentException("Access denied");
         }
     }
+    @GetMapping("/getall")
+    public ResponseEntity<ResponseWrapper<List<LeaveBalance>>> getall() {
+        List<LeaveBalance> response = leaveService.getall();
+        return ResponseEntity.ok(ResponseWrapper.success(response));
+    }
+
 }

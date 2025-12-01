@@ -181,4 +181,9 @@ public class LeaveService {
                 .totalLeaves(0.0)
                 .build();
     }
+
+
+    public List<LeaveBalance> getall() {
+        return leaveBalanceRepository.findAll();
+    }
 }
