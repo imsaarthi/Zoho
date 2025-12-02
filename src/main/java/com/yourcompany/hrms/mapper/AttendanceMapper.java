@@ -30,26 +30,10 @@ public class AttendanceMapper {
                 .totalWorkMinutes(session.getDurationMinutes())
                 .attendanceStatus(status != null ? status.name() : null)
                 .photoUrl(session.getCheckOutPhotoUrl() != null ? session.getCheckOutPhotoUrl()
-                        : session.getCheckInPhotoUrl()) // Use check-out photo if available, else check-in. Or maybe I
-                                                        // should pass the specific photo URL from the action?
-                // The processAttendanceAction returns the session, but the specific photo URL
-                // for the action is what we want.
-                // However, the session has the latest photo URL for the action performed.
-                // If check-in, checkInPhotoUrl is set. If check-out, checkOutPhotoUrl is set.
-                // If break-in/out, break session has it.
-                // Let's rely on the service to set the correct photoUrl in the response, or we
-                // can infer it here.
-                // Actually, the service returns AttendanceActionResponse, so the service should
-                // build it or the mapper should be smart enough.
-                // But the mapper takes the session.
-                // Let's look at processAttendanceAction in Service. It calls
-                // mapper.toActionResponse(session, status).
-                // It doesn't pass the specific photo URL.
-                // I should probably update toActionResponse to accept photoUrl or logic to pick
-                // it
-                // For now, I'll set it to null here and let the service set it, or update the
-                // mapper signature.
-                // Updating mapper signature is better.
+                        : session.getCheckInPhotoUrl())
+                .checkInLat(session.getCheckInLat())
+                .checkInLon(session.getCheckInLon())
+
                 .build();
     }
 
@@ -67,6 +51,8 @@ public class AttendanceMapper {
                 .totalWorkMinutes(session.getDurationMinutes())
                 .attendanceStatus(status != null ? status.name() : null)
                 .photoUrl(photoUrl)
+                .checkInLat(session.getCheckInLat())
+                .checkInLon(session.getCheckInLon())
                 .build();
     }
 
@@ -98,9 +84,6 @@ public class AttendanceMapper {
         }
         return AttendanceSessionResponse.builder()
                 .id(session.getId())
-                // .userId(session.getUser().getId()) // Removed as per DTO check (if not
-                // present)
-                // .userFullName(session.getUser().getFullName()) // Removed as per DTO check
                 .workDate(session.getWorkDate())
                 .checkIn(session.getCheckIn())
                 .checkOut(session.getCheckOut())
@@ -108,6 +91,9 @@ public class AttendanceMapper {
                 .checkInPhotoUrl(session.getCheckInPhotoUrl())
                 .checkOutPhotoUrl(session.getCheckOutPhotoUrl())
                 .breaks(toBreakSessionResponseList(session.getBreakSessions()))
+                .checkInLat(session.getCheckInLat())
+                .checkInLon(session.getCheckInLon())
+
                 .build();
     }
 
@@ -148,7 +134,11 @@ public class AttendanceMapper {
                 .id(breakSession.getId())
                 .breakStartTime(breakSession.getBreakStartTime())
                 .breakEndTime(breakSession.getBreakEndTime())
+                .breakStartPhotoUrl(breakSession.getBreakStartPhotoUrl())
+                .breakEndPhotoUrl(breakSession.getBreakEndPhotoUrl())
                 .durationMinutes(breakSession.getBreakDurationMinutes())
+                .breakEndLat(breakSession.getBreakEndLat())
+                .breakEndLon(breakSession.getBreakStartLon())
                 .build();
     }
 }
