@@ -7,9 +7,11 @@ import lombok.Data;
 @Data
 @Builder
 public class LeaveBalanceResponse {
+    private Long id;
+    private Long userId;
     private LeaveType leaveType;
-    private int totalLeaves;
-    private int usedLeaves;
-    private int pendingLeaves;
-    private int availableLeaves;
+    private Double totalLeaves;
+    private Double usedLeaves;
+    private Double pendingLeaves;
+    private Double availableLeaves;
 }

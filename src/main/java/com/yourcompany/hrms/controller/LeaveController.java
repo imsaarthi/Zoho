@@ -7,6 +7,7 @@ import com.yourcompany.hrms.dto.LeaveBalanceResponse;
 import com.yourcompany.hrms.dto.LeaveRequestResponse;
 import com.yourcompany.hrms.dto.UserResponse;
 import com.yourcompany.hrms.entity.LeaveBalance;
+import com.yourcompany.hrms.entity.LeaveRequest;
 import com.yourcompany.hrms.service.LeaveService;
 import com.yourcompany.hrms.service.UserService;
 import jakarta.validation.Valid;
@@ -45,6 +46,11 @@ public class LeaveController {
         LeaveRequestResponse response = leaveService.rejectLeave(id, request);
         return ResponseEntity.ok(ResponseWrapper.success("Leave rejected successfully", response));
     }
+    @GetMapping("/getAllUserLeaves")
+    public ResponseEntity<ResponseWrapper<List<LeaveRequestResponse>>> request() {
+        List<LeaveRequestResponse> response = leaveService.request();
+        return ResponseEntity.ok(ResponseWrapper.success(response));
+    }
 
     @GetMapping("/balance/{userId}")
     public ResponseEntity<ResponseWrapper<LeaveBalanceResponse>> getBalance(@PathVariable Long userId) {
@@ -75,9 +81,10 @@ public class LeaveController {
         }
     }
     @GetMapping("/getall")
-    public ResponseEntity<ResponseWrapper<List<LeaveBalance>>> getall() {
-        List<LeaveBalance> response = leaveService.getall();
+    public ResponseEntity<ResponseWrapper<List<LeaveBalanceResponse>>> getall() {
+        List<LeaveBalanceResponse> response = leaveService.getall();
         return ResponseEntity.ok(ResponseWrapper.success(response));
     }
+
 
 }

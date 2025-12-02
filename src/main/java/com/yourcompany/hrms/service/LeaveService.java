@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static org.antlr.v4.runtime.tree.xpath.XPath.findAll;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -129,10 +131,10 @@ public class LeaveService {
                 .sum();
 
         return LeaveBalanceResponse.builder()
-                .totalLeaves((int) (balance.getTotalLeaves() + usedLeaves)) // Entitlement = Remaining + Used
-                .usedLeaves(usedLeaves)
-                .pendingLeaves(pendingLeaves)
-                .availableLeaves(balance.getTotalLeaves().intValue())
+                .totalLeaves((Double) (balance.getTotalLeaves() + usedLeaves)) // Entitlement = Remaining + Used
+                .usedLeaves((double) usedLeaves)
+                .pendingLeaves((double) pendingLeaves)
+                .availableLeaves((double) balance.getTotalLeaves().intValue())
                 .build();
     }
 
@@ -183,7 +185,42 @@ public class LeaveService {
     }
 
 
-    public List<LeaveBalance> getall() {
-        return leaveBalanceRepository.findAll();
+    public List<LeaveBalanceResponse> getall() {
+        List<LeaveBalance> balance = leaveBalanceRepository.findAll();
+        return balance.stream()
+                .map(lr -> LeaveBalanceResponse.builder()
+                                .totalLeaves(lr.getTotalLeaves())
+                                .id(lr.getId())
+                                .userId(lr.getUser().getId())
+                                .build()
+//        private LeaveType leaveType;
+//        private int totalLeaves;
+//        private int usedLeaves;
+//        private int pendingLeaves;
+//        private int availableLeaves;
+                )
+                .toList();
     }
+
+    public List<LeaveRequestResponse> request() {
+
+        List<LeaveRequest> balance = leaveRequestRepository.findAll();
+
+        return balance.stream()
+                .map(lr -> LeaveRequestResponse.builder()
+                        .id(lr.getId())
+                        .userId(lr.getUser().getId())
+                        .startDate(lr.getStartDate())
+                        .userFullName(lr.getUser() != null ? lr.getUser().getFullName() : null)
+                        .endDate(lr.getEndDate())
+                        .status(lr.getStatus())
+                        .leaveType(lr.getLeaveType())
+                        .reason(lr.getReason())
+                        .build()
+                )
+                .toList();
+
+    }
+
+
 }
