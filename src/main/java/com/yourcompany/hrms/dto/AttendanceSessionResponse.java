@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 
 public class AttendanceSessionResponse {
+    private Long userId;
     private Long id;
     private LocalDate workDate;
     private LocalDateTime checkIn;

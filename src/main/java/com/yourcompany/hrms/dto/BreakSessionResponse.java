@@ -21,4 +21,6 @@ public class BreakSessionResponse {
     private Integer durationMinutes;
     private Double breakEndLat;
     private Double breakEndLon;
+    private Double breakStartLat;
+    private Double breakStartLon;
 }

@@ -5,6 +5,7 @@ import com.yourcompany.hrms.dto.AttendanceActionRequest;
 import com.yourcompany.hrms.dto.AttendanceActionResponse;
 import com.yourcompany.hrms.dto.AttendanceDaySummaryResponse;
 import com.yourcompany.hrms.dto.DailyAttendanceSummary;
+import com.yourcompany.hrms.entity.AttendanceSession;
 import com.yourcompany.hrms.service.AttendanceService;
 import com.yourcompany.hrms.service.UserService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/attendance")
@@ -57,4 +59,22 @@ public class AttendanceController {
         List<DailyAttendanceSummary> history = attendanceService.getUserHistory(currentUserEmail, userId, from, to);
         return ResponseEntity.ok(ResponseWrapper.success(history));
     }
-}
+
+    @GetMapping("/allUserHistory")
+    public ResponseEntity<ResponseWrapper<List<DailyAttendanceSummary>>> getUserHistory(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        String currentUserEmail = userService.getCurrentUserEmail();
+        List<DailyAttendanceSummary> history = attendanceService.getAllUserhistory(currentUserEmail,from, to);
+        return ResponseEntity.ok(ResponseWrapper.success(history));
+    }
+
+//    @GetMapping("/day-summary/{from}/{to}")
+//    public ResponseEntity<ResponseWrapper<AttendanceDaySummaryResponse>> getDaySummary(
+//        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+//        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to){
+//        String currentUserEmail = userService.getCurrentUserEmail();
+//        AttendanceDaySummaryResponse response = attendanceService.getDaySummary(currentUserEmail, from , to);
+//        return ResponseEntity.ok(ResponseWrapper.success(response));
+    }
+

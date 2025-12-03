@@ -18,4 +18,9 @@ public interface AttendanceSessionRepository extends JpaRepository<AttendanceSes
 
     List<AttendanceSession> findByUserIdAndWorkDateBetweenOrderByWorkDateAscCheckInAsc(Long userId, LocalDate startDate,
             LocalDate endDate);
+
+    //List<AttendanceSession> findByUserBetweenOrderByWorkDateAscCheckInAsc(LocalDate startDate,LocalDate endDate);
+    List<AttendanceSession> findByWorkDateBetweenOrderByWorkDateAscCheckInAsc(LocalDate startDate, LocalDate endDate);
+
+    Optional<AttendanceSession> findAllById(Long userId);
 }
