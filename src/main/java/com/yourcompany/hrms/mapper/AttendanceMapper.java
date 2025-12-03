@@ -84,7 +84,7 @@ public class AttendanceMapper {
         }
         return AttendanceSessionResponse.builder()
                 .id(session.getId())
-                .userId(session.getId())
+                .userId(session.getUser().getId())
                 .workDate(session.getWorkDate())
                 .checkIn(session.getCheckIn())
                 .checkOut(session.getCheckOut())
@@ -111,10 +111,17 @@ public class AttendanceMapper {
         if (summary == null) {
             return null;
         }
+        Double totalWorkMinutes = Double.valueOf(summary.getTotalWorkMinutes());
+
         return AttendanceDaySummaryResponse.builder()
                 .date(summary.getAttendanceDate())
+                .firstCheckIn(summary.getFirstCheckIn())
+                .lastCheckOut(summary.getLastCheckOut())
                 .status(summary.getStatus())
+                .longitude(summary.getLongitude())
+                .latitude(summary.getLatitude())
                 .totalWorkMinutes(summary.getTotalWorkMinutes())
+                .totalWorkHours(Math.round((totalWorkMinutes / 60.0) * 100.0) / 100.0)
                 .build();
     }
 
