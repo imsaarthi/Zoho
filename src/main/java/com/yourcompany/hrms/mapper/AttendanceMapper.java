@@ -84,6 +84,7 @@ public class AttendanceMapper {
         }
         return AttendanceSessionResponse.builder()
                 .id(session.getId())
+                .userId(session.getId())
                 .workDate(session.getWorkDate())
                 .checkIn(session.getCheckIn())
                 .checkOut(session.getCheckOut())
@@ -137,6 +138,8 @@ public class AttendanceMapper {
                 .breakStartPhotoUrl(breakSession.getBreakStartPhotoUrl())
                 .breakEndPhotoUrl(breakSession.getBreakEndPhotoUrl())
                 .durationMinutes(breakSession.getBreakDurationMinutes())
+                .breakStartLon(breakSession.getBreakStartLon())
+                .breakStartLat(breakSession.getBreakStartLat())
                 .breakEndLat(breakSession.getBreakEndLat())
                 .breakEndLon(breakSession.getBreakStartLon())
                 .build();

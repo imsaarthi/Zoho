@@ -28,6 +28,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -303,12 +304,16 @@ public class AttendanceService {
                 .mapToLong(AttendanceSession::getDurationMinutes)
                 .sum();
 
-        // We need to map to AttendanceSessionResponse here, but processAttendanceAction
-        // returns AttendanceActionResponse.
-        // The DailyAttendanceSummary DTO expects List<AttendanceSessionResponse>.
-        // AttendanceMapper.toSessionResponse is what we need.
+//        Long userId = sessions.isEmpty() ? null : sessions.get(0).getUser().getId();
+////        List<Long> userIds = sessions.stream()
+////                .map(s -> s.getUser().getId())
+////                .toList();
+        Long userId = sessions.stream()
+                .map(s -> s.getUser().getId())
+                .findFirst()
+                .orElse(null);
 
-        // Note: AttendanceMapper.toSessionResponse is available and correct.
+
 
         return DailyAttendanceSummary.builder()
                 .date(date)
@@ -328,4 +333,30 @@ public class AttendanceService {
         log.info("Verifying face: profile={} vs action={}", profileImageUrl, actionImageUrl);
         return true;
     }
+
+
+    @Transactional(readOnly = true)
+    public List<DailyAttendanceSummary> getAllUserhistory(String currentUserEmail, LocalDate from,
+                                                       LocalDate to) {
+        User currentUser = getUserByEmail(currentUserEmail);
+        // Authorization check
+        boolean isAdminOrHr = currentUser.getRole().getName() == RoleName.ADMIN
+                || currentUser.getRole().getName() == RoleName.HR;
+
+        if (!isAdminOrHr) {
+            throw new IllegalArgumentException("Access denied: You can only view your own attendance history");
+        }
+
+        List<AttendanceSession> sessions = attendanceSessionRepository
+                .findByWorkDateBetweenOrderByWorkDateAscCheckInAsc(from, to);
+
+        Map<LocalDate, List<AttendanceSession>> sessionsByDate = sessions.stream()
+                .collect(Collectors.groupingBy(AttendanceSession::getWorkDate));
+
+        return sessionsByDate.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> calculateDailySummary(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
 }
