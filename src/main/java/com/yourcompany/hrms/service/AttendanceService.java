@@ -14,6 +14,7 @@ import com.yourcompany.hrms.exception.ResourceNotFoundException;
 import com.yourcompany.hrms.mapper.AttendanceMapper;
 import com.yourcompany.hrms.repository.AttendanceDaySummaryRepository;
 import com.yourcompany.hrms.repository.AttendanceSessionRepository;
+import com.yourcompany.hrms.repository.BreakSessionRepository;
 import com.yourcompany.hrms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +39,13 @@ public class AttendanceService {
 
     private final AttendanceSessionRepository attendanceSessionRepository;
     private final AttendanceDaySummaryRepository attendanceDaySummaryRepository;
+    private final BreakSessionRepository breakSessionRepository;
     private final UserRepository userRepository;
     private final AttendanceMapper attendanceMapper;
     private final FileStorageService fileStorageService;
+
+
+    private static final long BreakDuration = 30;
 
     @Transactional
     public AttendanceActionResponse processAttendanceAction(String currentUserEmail, AttendanceActionRequest request) {
@@ -185,10 +190,16 @@ public class AttendanceService {
                 .findTopByUserIdAndWorkDateAndCheckOutIsNullOrderByCheckInDesc(user.getId(), today)
                 .orElseThrow(() -> new IllegalArgumentException("No open session found for today."));
     }
+    private List<BreakSession> getBreakSessions(Long attendanceSession, Integer breakDurationMinutes) {
+        return breakSessionRepository.findAllByAttendanceSession_IdAndBreakDurationMinutes(attendanceSession, breakDurationMinutes);
+    }
+
 
     private AttendanceStatus updateDailySummary(User user, LocalDate date) {
         List<AttendanceSession> sessions = attendanceSessionRepository
                 .findByUserIdAndWorkDateOrderByCheckInAsc(user.getId(), date);
+
+
 
         if (sessions.isEmpty())
             return AttendanceStatus.ABSENT;
@@ -205,7 +216,7 @@ public class AttendanceService {
                 .sum();
 
         // Deduct fixed 30 mins break
-        long effectiveMinutes = Math.max(0, totalMinutes - 30);
+        long effectiveMinutes = Math.max(0, totalMinutes - BreakDuration);
 
         AttendanceStatus status = calculateStatus(firstCheckIn, lastCheckOut, effectiveMinutes);
 
@@ -241,6 +252,7 @@ public class AttendanceService {
             return AttendanceStatus.HALF_DAY;
         }
 
+
         // Rule 3: Total Work Hours < 7.5 hours (450 minutes)
         if (effectiveMinutes < 450) {
             return AttendanceStatus.HALF_DAY;
@@ -249,15 +261,15 @@ public class AttendanceService {
         return AttendanceStatus.FULL_DAY;
     }
 
-    @Transactional(readOnly = true)
-    public AttendanceDaySummaryResponse getDaySummary(String currentUserEmail, LocalDate date) {
-        User user = getUserByEmail(currentUserEmail);
-        AttendanceDaySummary summary = attendanceDaySummaryRepository
-                .findByUserIdAndAttendanceDate(user.getId(), date)
-                .orElseThrow(() -> new ResourceNotFoundException("AttendanceDaySummary", "date", date));
-
-        return attendanceMapper.toDaySummaryResponse(summary);
-    }
+//    @Transactional(readOnly = true)
+//    public AttendanceDaySummaryResponse getDaySummary(String currentUserEmail, LocalDate date) {
+//        User user = getUserByEmail(currentUserEmail);
+//        AttendanceDaySummary summary = attendanceDaySummaryRepository
+//                .findByUserIdAndAttendanceDate(user.getId(), date)
+//                .orElseThrow(() -> new ResourceNotFoundException("AttendanceDaySummary", "date", date));
+//
+//        return attendanceMapper.toDaySummaryResponse(summary);
+//    }
 
     @Transactional(readOnly = true)
     public DailyAttendanceSummary getTodaySummary(String currentUserEmail) {
@@ -308,10 +320,10 @@ public class AttendanceService {
 ////        List<Long> userIds = sessions.stream()
 ////                .map(s -> s.getUser().getId())
 ////                .toList();
-        Long userId = sessions.stream()
-                .map(s -> s.getUser().getId())
-                .findFirst()
-                .orElse(null);
+//        Long userId = sessions.stream()
+//                .map(s -> s.getUser().getId())
+//                .findFirst()
+//                .orElse(null);
 
 
 
@@ -358,5 +370,25 @@ public class AttendanceService {
                 .map(entry -> calculateDailySummary(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
     }
+    @Transactional(readOnly = true)
+    public List<AttendanceDaySummaryResponse> getDaySummaries(String currentUserEmail, LocalDate from, LocalDate to) {
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("'from' date must not be after 'to' date");
+        }
+
+        User user = getUserByEmail(currentUserEmail);
+
+
+
+        List<AttendanceDaySummary> summaries = attendanceDaySummaryRepository
+                .findAllByUserIdAndAttendanceDateBetweenOrderByAttendanceDateAsc(user.getId(), from, to);
+
+
+        return summaries.stream()
+                .map(attendanceMapper::toDaySummaryResponse)
+                .collect(Collectors.toList());
+    }
+
+
 
 }

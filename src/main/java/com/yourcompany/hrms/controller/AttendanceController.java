@@ -34,13 +34,13 @@ public class AttendanceController {
         return ResponseEntity.ok(ResponseWrapper.success("Action processed successfully", response));
     }
 
-    @GetMapping("/day-summary/{date}")
-    public ResponseEntity<ResponseWrapper<AttendanceDaySummaryResponse>> getDaySummary(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        String currentUserEmail = userService.getCurrentUserEmail();
-        AttendanceDaySummaryResponse response = attendanceService.getDaySummary(currentUserEmail, date);
-        return ResponseEntity.ok(ResponseWrapper.success(response));
-    }
+//    @GetMapping("/day-summary/{date}")
+//    public ResponseEntity<ResponseWrapper<AttendanceDaySummaryResponse>> getDaySummary(
+//            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+//        String currentUserEmail = userService.getCurrentUserEmail();
+//        AttendanceDaySummaryResponse response = attendanceService.getDaySummary(currentUserEmail, date);
+//        return ResponseEntity.ok(ResponseWrapper.success(response));
+//    }
 
     @GetMapping("/today")
     public ResponseEntity<ResponseWrapper<DailyAttendanceSummary>> getTodaySummary() {
@@ -69,12 +69,20 @@ public class AttendanceController {
         return ResponseEntity.ok(ResponseWrapper.success(history));
     }
 
-//    @GetMapping("/day-summary/{from}/{to}")
-//    public ResponseEntity<ResponseWrapper<AttendanceDaySummaryResponse>> getDaySummary(
-//        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-//        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to){
-//        String currentUserEmail = userService.getCurrentUserEmail();
-//        AttendanceDaySummaryResponse response = attendanceService.getDaySummary(currentUserEmail, from , to);
-//        return ResponseEntity.ok(ResponseWrapper.success(response));
+    @GetMapping("/day-summaryByDate")
+    public ResponseEntity<ResponseWrapper<List<AttendanceDaySummaryResponse>>> getDaySummaryRange(
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam("to")   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+        if (from.isAfter(to)) {
+            return ResponseEntity.badRequest()
+                    .body(ResponseWrapper.error("Invalid date range: 'from' must be on or before 'to'"));
+        }
+
+        String currentUserEmail = userService.getCurrentUserEmail();
+        List<AttendanceDaySummaryResponse> response = attendanceService.getDaySummaries(currentUserEmail, from, to);
+        return ResponseEntity.ok(ResponseWrapper.success(response));
     }
+
+}
 
