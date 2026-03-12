@@ -2,23 +2,59 @@ trigger:
 - main
 
 pool:
-  name: Default   # uses your VM agent
+  name: Default   # your self-hosted VM agent
 
-steps:
+stages:
 
-- checkout: self
+# ========================
+# BUILD STAGE (CI)
+# ========================
+- stage: Build
+  displayName: Build Stage
+  jobs:
+  - job: BuildJob
+    displayName: Build Maven Project
+    steps:
 
-- script: |
-    echo "Checking Java version"
-    java -version
-  displayName: Check Java
+    - checkout: self
 
-- script: |
-    echo "Building Maven project"
-    mvn clean package
-  displayName: Build Project
+    - script: |
+        echo "Checking Java version"
+        java -version
+      displayName: Check Java
 
-- script: |
-    echo "Build completed"
-    ls target
-  displayName: Show JAR
+    - script: |
+        echo "Building Maven project"
+        mvn clean package
+      displayName: Build Project
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: 'target'
+        artifactName: 'jar-file'
+      displayName: Publish JAR Artifact
+
+
+# ========================
+# DEPLOY STAGE (CD)
+# ========================
+- stage: Deploy
+  displayName: Deploy Stage
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    displayName: Deploy Application
+    steps:
+
+    - download: current
+      artifact: jar-file
+
+    - script: |
+        echo "Deploying application..."
+        ls $(Pipeline.Workspace)/jar-file
+
+        JAR=$(ls $(Pipeline.Workspace)/jar-file/*.jar)
+
+        echo "Starting application..."
+        nohup java -jar $JAR > app.log 2>&1 &
+      displayName: Run Java Application
