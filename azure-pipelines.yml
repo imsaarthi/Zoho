@@ -1,0 +1,24 @@
+trigger:
+- main
+
+pool:
+  name: Default   # uses your VM agent
+
+steps:
+
+- checkout: self
+
+- script: |
+    echo "Checking Java version"
+    java -version
+  displayName: Check Java
+
+- script: |
+    echo "Building Maven project"
+    mvn clean package
+  displayName: Build Project
+
+- script: |
+    echo "Build completed"
+    ls target
+  displayName: Show JAR
