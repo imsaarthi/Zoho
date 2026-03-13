@@ -33,28 +33,3 @@ stages:
         pathToPublish: 'target'
         artifactName: 'jar-file'
       displayName: Publish JAR Artifact
-
-
-# ========================
-# DEPLOY STAGE (CD)
-# ========================
-- stage: Deploy
-  displayName: Deploy Stage
-  dependsOn: Build
-  jobs:
-  - job: DeployJob
-    displayName: Deploy Application
-    steps:
-
-    - download: current
-      artifact: jar-file
-
-    - script: |
-        echo "Deploying application..."
-        ls $(Pipeline.Workspace)/jar-file
-
-        JAR=$(ls $(Pipeline.Workspace)/jar-file/*.jar)
-
-        echo "Starting application..."
-        nohup java -jar $JAR > app.log 2>&1 &
-      displayName: Run Java Application
