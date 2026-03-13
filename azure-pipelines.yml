@@ -1,0 +1,35 @@
+trigger:
+- main
+
+pool:
+  name: Default   # your self-hosted VM agent
+
+stages:
+
+# ========================
+# BUILD STAGE (CI)
+# ========================
+- stage: Build
+  displayName: Build Stage
+  jobs:
+  - job: BuildJob
+    displayName: Build Maven Project
+    steps:
+
+    - checkout: self
+
+    - script: |
+        echo "Checking Java version"
+        java -version
+      displayName: Check Java
+
+    - script: |
+        echo "Building Maven project"
+        mvn clean package
+      displayName: Build Project
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: 'target'
+        artifactName: 'jar-file'
+      displayName: Publish JAR Artifact
